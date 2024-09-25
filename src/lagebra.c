@@ -10,6 +10,7 @@
 static Vector2 GetRelativeMousePosition();
 static Vector2 GetWindowSize();
 static void RenderGrid();
+static void RenderLine(Vector2, Vector2, Color);
 static void RenderPoint(Vector2, Color);
 static void RenderVector(Vector2, Color);
 
@@ -108,24 +109,37 @@ static Vector2 GetWindowSize()
   return (Vector2){width, height};
 }
 
+static void RenderLine(Vector2 start, Vector2 end, Color color)
+{
+	Matrix matrix = {.m0 = i_hat.x, .m1 = -i_hat.y, .m4 = j_hat.x, .m5 = -j_hat.y};
+	Vector2 translation = Vector2Scale(GetWindowSize(), 0.5f);
+	start = Vector2Transform(start, matrix);
+	end   = Vector2Transform(end, matrix);
+  	start = Vector2Add(start, translation);
+  	end   = Vector2Add(end, translation);
+    DrawLineEx(start, end, 1.0f, WHITE);
+}
+
 static void RenderGrid()
 {
-  Vector2 size = GetWindowSize();
-  Vector2 segments = (Vector2){size.x / block_size, size.y / block_size};
+  Vector2 window_size = GetWindowSize();
+  Vector2 segments = (Vector2){
+	  window_size.x / block_size,
+	  window_size.y / block_size};
 
   for (int i = 1; i < segments.x; ++i) {
-    int x = size.x / segments.x * i;
-    Vector2 start = {x, 0}, end = {x, size.y};
-    DrawLineEx(start, end, 1.0f, WHITE);
+    int x = window_size.x / segments.x * i - window_size.x / 2;
+    Vector2 start = {x, -window_size.y / 2 }, end = {x, window_size.y / 2};
+	RenderLine(start, end, WHITE);
   }
 
   for (int i = 1; i < segments.y; ++i) {
-    int y = size.y / segments.y * i;
-    Vector2 start = {0, y}, end = {size.x, y};
-    DrawLineEx(start, end, 1.0f, WHITE);
+    int y = window_size.y / segments.y * i - window_size.y / 2;
+    Vector2 start = {-window_size.x / 2, y}, end = {window_size.x / 2, y};
+	RenderLine(start, end, WHITE);
   }
 
-  RenderPoint(Vector2Scale(size, 0.5f), YELLOW);
+  RenderPoint(Vector2Scale(window_size, 0.5f), YELLOW);
 }
 
 static void RenderPoint(Vector2 position, Color color)
