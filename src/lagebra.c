@@ -1,4 +1,5 @@
 #include <raylib.h>
+#include <rlgl.h>
 #include <raymath.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -11,6 +12,7 @@ static Vector2 GetRelativeMousePosition();
 static Vector2 GetWindowSize();
 static void RenderGrid();
 static void RenderLine(Vector2, Vector2, Color);
+static void RenderRectangle(Vector2, Vector2, Color);
 static void RenderPoint(Vector2, Color);
 static void RenderVector(Vector2, Color);
 
@@ -24,6 +26,7 @@ void
 Init()
 {
 	puts("initializing...");
+	rlDisableBackfaceCulling();
 }
 
 void
@@ -87,6 +90,8 @@ Draw()
     break;
   }
 
+  RenderRectangle((Vector2){-2 * block_size, 0}, (Vector2){block_size, block_size}, BLUE);
+
   EndDrawing();
 }
 
@@ -107,6 +112,40 @@ static Vector2 GetWindowSize()
   int height = GetRenderHeight() / GetWindowScaleDPI().y;
 
   return (Vector2){width, height};
+}
+
+static void RenderRectangle(Vector2 position, Vector2 size, Color color) {
+	Vector2 translation = Vector2Scale(GetWindowSize(), 0.5f);
+	Matrix matrix = {.m0 = i_hat.x, .m1 = -i_hat.y, .m4 = j_hat.x, .m5 = -j_hat.y};
+	Rectangle rec = {position.x, position.y, size.x, size.y};
+	Vector2 topLeft = { rec.x, rec.y };
+	Vector2 topRight = { rec.x + rec.width, rec.y };
+	Vector2 bottomLeft = { rec.x, rec.y + rec.height };
+	Vector2 bottomRight = { rec.x + rec.width, rec.y + rec.height };
+
+	topLeft = Vector2Transform(topLeft, matrix);
+	topRight = Vector2Transform(topRight, matrix);
+	bottomLeft = Vector2Transform(bottomLeft, matrix);
+	bottomRight = Vector2Transform(bottomRight, matrix);
+
+	topLeft = Vector2Add(topLeft, translation);
+	topRight = Vector2Add(topRight, translation);
+	bottomLeft = Vector2Add(bottomLeft, translation);
+	bottomRight = Vector2Add(bottomRight, translation);
+
+	rlBegin(RL_TRIANGLES);
+
+	rlColor4ub(color.r, color.g, color.b, color.a);
+
+	rlVertex2f(bottomRight.x, bottomRight.y);
+	rlVertex2f(bottomLeft.x, bottomLeft.y);
+	rlVertex2f(topRight.x, topRight.y);
+
+	rlVertex2f(topRight.x, topRight.y);
+	rlVertex2f(bottomLeft.x, bottomLeft.y);
+	rlVertex2f(topLeft.x, topLeft.y);
+
+	rlEnd();
 }
 
 static void RenderLine(Vector2 start, Vector2 end, Color color)
