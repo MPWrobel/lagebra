@@ -16,23 +16,30 @@ static void RenderRectangle(Vector2, Vector2, Color);
 static void RenderPoint(Vector2, Color);
 static void RenderVector(Vector2, Color);
 
-static int block_size = 64;
+static int block_size = 16;
 static int selected_vector = NONE;
 
 static Vector2 i_hat = {1, 0};
 static Vector2 j_hat = {0, 1};
+
+static Image image;
+static Color *pixels;
 
 void
 Init()
 {
 	puts("initializing...");
 	rlDisableBackfaceCulling();
+	image  = LoadImage("assets/bananas.png");
+	pixels = LoadImageColors(image);
 }
 
 void
 Deinit()
 {
 	puts("deinitializing...");
+	UnloadImage(image);
+	UnloadImageColors(pixels);
 }
 
 void
@@ -67,6 +74,15 @@ Draw()
 
   ClearBackground(BLACK);
 
+  for (int y = 0; y < image.height; ++y) {
+	for(int x = 0; x < image.width; ++x) {
+		RenderRectangle((Vector2){(int)(x - image.width / 2) * block_size,
+								  (int)(y - image.height / 2) * block_size},
+						(Vector2){block_size, block_size},
+						pixels[(image.height - 1 - y) * image.width + x]);
+	}
+  }
+
   RenderGrid();
 
   RenderVector(i_hat, RED);
@@ -89,8 +105,6 @@ Draw()
     DrawText("UNKNOWN", 16, 64, 32, YELLOW);
     break;
   }
-
-  RenderRectangle((Vector2){-2 * block_size, 0}, (Vector2){block_size, block_size}, BLUE);
 
   EndDrawing();
 }
