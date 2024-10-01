@@ -15,54 +15,54 @@ static func *Draw;
 static void *
 load(char *path)
 {
-	static void *mod;
+    static void *mod;
 
-	system("make");
+    system("make");
 
-	if (mod) dlclose(mod);
-	mod = dlopen(path, RTLD_NOW);
+    if (mod) dlclose(mod);
+    mod = dlopen(path, RTLD_NOW);
 
-	if (!mod) return mod;
+    if (!mod) return mod;
 
-	Init   = (func *)dlsym(mod, "Init");
-	Deinit = (func *)dlsym(mod, "Deinit");
-	Update = (func *)dlsym(mod, "Update");
-	Draw   = (func *)dlsym(mod, "Draw");
+    Init   = (func *)dlsym(mod, "Init");
+    Deinit = (func *)dlsym(mod, "Deinit");
+    Update = (func *)dlsym(mod, "Update");
+    Draw   = (func *)dlsym(mod, "Draw");
 
-	return mod;
+    return mod;
 }
 
 int
 main(int argc, char **argv)
 {
-	char *bindir  = dirname(argv[0]);
-	char *modname = "lagebra.so";
-	char  modpath[strlen(bindir) + strlen(modname) + 2];
-	snprintf(modpath, sizeof(modpath), "%s/%s", bindir, modname);
+    char *bindir  = dirname(argv[0]);
+    char *modname = "lagebra.so";
+    char  modpath[strlen(bindir) + strlen(modname) + 2];
+    snprintf(modpath, sizeof(modpath), "%s/%s", bindir, modname);
 
-	InitWindow(1024, 512, "");
+    InitWindow(1024, 512, "");
 
-	SetTargetFPS(60);
-	SetExitKey(KEY_NULL);
+    SetTargetFPS(60);
+    SetExitKey(KEY_NULL);
 
-	void *mod = load(modpath);
-	if (Init) Init();
+    void *mod = load(modpath);
+    if (Init) Init();
 
-	while (!WindowShouldClose()) {
-		if (IsKeyPressed(KEY_ESCAPE)) {
-			mod = load(modpath);
-			if (Deinit) Deinit();
-			if (Init) Init();
-		}
+    while (!WindowShouldClose()) {
+        if (IsKeyPressed(KEY_ESCAPE)) {
+            mod = load(modpath);
+            if (Deinit) Deinit();
+            if (Init) Init();
+        }
 
-		if (Update) Update();
-		if (Draw) Draw();
-	}
+        if (Update) Update();
+        if (Draw) Draw();
+    }
 
-	if (Deinit) Deinit();
-	if (mod) dlclose(mod);
+    if (Deinit) Deinit();
+    if (mod) dlclose(mod);
 
-	CloseWindow();
+    CloseWindow();
 
-	return 0;
+    return 0;
 }
